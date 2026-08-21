@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: markdown-to-pdf
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    region: oregon
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      # Caps how many PDF renders run at once
+      - key: MAX_CONCURRENT_RENDERS
+        value: "3"
+    # Render sets $PORT automatically at runtime — do not set it here.

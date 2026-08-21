@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Markdown → PDF</title>
+  <meta name="description" content="Convert Markdown revision notes into polished A4 PDFs. No installs required." />
+  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="stylesheet" href="/static/document.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <h1 class="app-title">Markdown <span class="arrow" aria-hidden="true">→</span> PDF</h1>
+      <p class="app-subtitle">Turn Markdown revision notes into clean, printable A4 PDFs.</p>
+    </header>
+
+    <main class="app-main">
+      <section
+        class="dropzone"
+        id="dropzone"
+        aria-label="Upload a Markdown file"
+      >
+        <p class="dropzone-primary">Drop a Markdown file here</p>
+        <p class="dropzone-or">or</p>
+        <button type="button" class="btn btn-secondary" id="chooseFileBtn">Choose .md file</button>
+        <input type="file" id="fileInput" accept=".md,.markdown,text/markdown" hidden />
+      </section>
+
+      <div class="workspace">
+        <div class="panel">
+          <div class="panel-header">
+            <span>Markdown</span>
+          </div>
+          <textarea
+            id="editor"
+            class="editor"
+            spellcheck="false"
+            wrap="soft"
+            placeholder="# Start typing, paste, or drop a .md file…"
+            aria-label="Markdown source"
+          ></textarea>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span>Preview</span>
+          </div>
+          <div class="preview-scroll">
+            <div id="preview" class="doc preview-empty">
+              <p class="empty-hint">Your rendered notes will appear here.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="format-bar">
+        <span>A4</span>
+        <span class="dot" aria-hidden="true">&middot;</span>
+        <span>10.3 pt</span>
+        <span class="dot" aria-hidden="true">&middot;</span>
+        <span>Normal margins</span>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="downloadBtn" disabled>
+          <span id="downloadBtnLabel">Download PDF</span>
+        </button>
+        <button type="button" class="btn btn-secondary" id="clearBtn">Clear</button>
+        <button type="button" class="btn btn-tertiary" id="sampleBtn">Load sample</button>
+      </div>
+
+      <p class="status" id="statusMessage" role="status" aria-live="polite"></p>
+    </main>
+
+    <footer class="app-footer">
+      <p>Nothing is stored. Your notes are converted and discarded — not saved to a database.</p>
+    </footer>
+  </div>
+
+  <script src="/static/vendor/markdown-it.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

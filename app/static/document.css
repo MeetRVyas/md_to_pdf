@@ -1,0 +1,246 @@
+/*
+  document.css
+  ------------
+  Styling for the RENDERED NOTES themselves (not the app chrome around them).
+  This file is loaded by the browser preview AND read from disk and inlined
+  into the HTML that Playwright prints to PDF (see app/pdf.py). Keeping it
+  in exactly one place is what guarantees preview === PDF, per spec section 11.
+
+  Colors:
+    primary (headings) #0d2b4e
+    accent (rules/borders) #d98324
+    body text #1a1a1a
+*/
+
+@page {
+  size: A4;
+  margin: 20mm 16mm 18mm 16mm;
+}
+
+.doc {
+  --doc-primary: #0d2b4e;
+  --doc-accent: #d98324;
+  --doc-body: #1a1a1a;
+  --doc-muted: #5b6b7c;
+  --doc-border: #d8dee5;
+  --doc-row-alt: #f2f5f8;
+  --doc-code-bg: #f4f1ea;
+
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-size: 10.3pt;
+  line-height: 1.42;
+  color: var(--doc-body);
+  max-width: 100%;
+}
+
+.doc * {
+  box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Headings                                                                */
+/* ---------------------------------------------------------------------- */
+
+.doc h1,
+.doc h2,
+.doc h3,
+.doc h4,
+.doc h5,
+.doc h6 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: var(--doc-primary);
+  font-weight: 700;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.doc h1 {
+  font-size: 22pt;
+  margin: 0 0 14pt 0;
+  padding-bottom: 8pt;
+  border-bottom: 2.5pt solid var(--doc-primary);
+  letter-spacing: 0.2pt;
+}
+
+.doc h1:not(:first-child) {
+  margin-top: 26pt;
+}
+
+.doc h2 {
+  font-size: 13.5pt;
+  color: #ffffff;
+  background: var(--doc-primary);
+  margin: 22pt 0 12pt 0;
+  padding: 6pt 10pt;
+  border-radius: 2pt;
+}
+
+.doc h3 {
+  font-size: 12pt;
+  margin: 16pt 0 8pt 0;
+  padding-left: 9pt;
+  border-left: 3pt solid var(--doc-accent);
+}
+
+.doc h4 {
+  font-size: 10.8pt;
+  margin: 12pt 0 6pt 0;
+  color: var(--doc-primary);
+}
+
+.doc h5,
+.doc h6 {
+  font-size: 10.3pt;
+  margin: 10pt 0 6pt 0;
+}
+
+/* Avoid a heading stranded at the bottom of a page with its content pushed
+   to the next one. */
+.doc h1,
+.doc h2,
+.doc h3,
+.doc h4 {
+  break-inside: avoid;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Body text                                                               */
+/* ---------------------------------------------------------------------- */
+
+.doc p {
+  margin: 0 0 8pt 0;
+  orphans: 3;
+  widows: 3;
+}
+
+.doc strong {
+  font-weight: 700;
+}
+
+.doc em {
+  font-style: italic;
+}
+
+.doc a {
+  color: var(--doc-primary);
+  text-decoration: underline;
+  text-decoration-color: var(--doc-accent);
+}
+
+.doc hr {
+  border: none;
+  border-top: 1pt solid var(--doc-border);
+  margin: 16pt 0;
+}
+
+.doc blockquote {
+  margin: 0 0 8pt 0;
+  padding: 4pt 12pt;
+  border-left: 3pt solid var(--doc-border);
+  color: var(--doc-muted);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Lists                                                                   */
+/* ---------------------------------------------------------------------- */
+
+.doc ul,
+.doc ol {
+  margin: 0 0 8pt 0;
+  padding-left: 20pt;
+}
+
+.doc li {
+  margin: 0 0 3pt 0;
+  break-inside: avoid;
+}
+
+.doc li > ul,
+.doc li > ol {
+  margin-top: 3pt;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Code                                                                    */
+/* ---------------------------------------------------------------------- */
+
+.doc code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 9pt;
+  background: var(--doc-code-bg);
+  padding: 1.5pt 4pt;
+  border-radius: 2pt;
+}
+
+.doc pre {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 9pt;
+  line-height: 1.45;
+  background: var(--doc-code-bg);
+  border: 0.75pt solid var(--doc-border);
+  border-radius: 3pt;
+  padding: 8pt 10pt;
+  margin: 0 0 10pt 0;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  break-inside: avoid;
+}
+
+.doc pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Tables                                                                  */
+/* ---------------------------------------------------------------------- */
+
+.doc table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 12pt 0;
+  font-size: 9.3pt;
+  /* Deliberately no break-inside:avoid here: a table taller than one page
+     must still be allowed to flow across pages (spec section 12). Only
+     individual rows are protected from being split, below. */
+}
+
+.doc thead {
+  display: table-header-group; /* repeat header if a table does span pages */
+}
+
+.doc th {
+  background: var(--doc-primary);
+  color: #ffffff;
+  text-align: left;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 700;
+  padding: 5pt 8pt;
+  break-inside: avoid;
+}
+
+.doc td {
+  padding: 5pt 8pt;
+  border-bottom: 0.5pt solid var(--doc-border);
+  vertical-align: top;
+}
+
+.doc tbody tr:nth-child(even) td {
+  background: var(--doc-row-alt);
+}
+
+.doc tr {
+  break-inside: avoid;
+}
+
+/* Large tables are still allowed to flow across pages (spec section 12);
+   only avoid breaking a single row. */
+
+@media print {
+  .doc {
+    font-size: 10.3pt;
+  }
+}
