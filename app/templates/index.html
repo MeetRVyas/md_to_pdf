@@ -1,18 +1,44 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Markdown → PDF</title>
   <meta name="description" content="Convert Markdown revision notes into polished A4 PDFs. No installs required." />
+  <script>
+    // Runs before CSS is applied, so a stored "light" preference doesn't
+    // flash dark first. Default (no stored value, or storage unavailable)
+    // is the dark theme already set on <html> above.
+    (function () {
+      try {
+        var stored = localStorage.getItem("markdown-to-pdf:theme");
+        if (stored === "light" || stored === "dark") {
+          document.documentElement.setAttribute("data-theme", stored);
+        }
+      } catch (err) {
+        /* localStorage unavailable (private mode, etc.) — dark default stands */
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="/static/styles.css" />
   <link rel="stylesheet" href="/static/document.css" />
 </head>
 <body>
   <div class="app-shell">
     <header class="app-header">
-      <h1 class="app-title">Markdown <span class="arrow" aria-hidden="true">→</span> PDF</h1>
-      <p class="app-subtitle">Turn Markdown revision notes into clean, printable A4 PDFs.</p>
+      <div class="app-header-text">
+        <h1 class="app-title">Markdown <span class="arrow" aria-hidden="true">→</span> PDF</h1>
+        <p class="app-subtitle">Turn Markdown revision notes into clean, printable A4 PDFs.</p>
+      </div>
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="Switch to light theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.5" />
+          <path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8" />
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.7 6.7 0 0 0 10.5 10.5Z" />
+        </svg>
+      </button>
     </header>
 
     <main class="app-main">

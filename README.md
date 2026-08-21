@@ -61,6 +61,24 @@ in the same `static/` directory; the split just keeps "what the PDF looks
 like" and "what the app looks like" from tangling together, while keeping
 them in exactly one place each so preview and PDF can't drift apart.
 
+## Theme
+
+The app defaults to a dark theme (near-black background, dark-grey
+panels, a gold accent used sparingly — roughly a 60/30/10 split) with a
+toggle in the header to switch to light. The preference is saved in
+`localStorage` and restored on the next visit, with an inline script in
+`index.html` that applies it before first paint so there's no flash of
+the wrong theme.
+
+The live preview pane deliberately stays on a white "page" background in
+both themes — it's standing in for the physical A4 sheet the PDF will be,
+so it shouldn't follow the app's theme. Only the chrome around it
+(editor, dropzone, buttons, header) changes. All theme colors are CSS
+custom properties in `static/styles.css` (`:root` for light,
+`:root[data-theme="dark"]` for dark) — the PDF's own stylesheet
+(`document.css`) is untouched by this and always renders the same
+regardless of which app theme is active.
+
 ## Running locally
 
 Requires Python 3.11+.

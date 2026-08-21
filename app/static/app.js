@@ -1,6 +1,40 @@
 (() => {
   "use strict";
 
+  // -----------------------------------------------------------------
+  // Theme toggle (persisted; default is set inline in index.html to
+  // avoid a flash of the wrong theme before this script runs)
+  // -----------------------------------------------------------------
+  const THEME_KEY = "markdown-to-pdf:theme";
+  const themeToggle = document.getElementById("themeToggle");
+
+  function setStoredTheme(theme) {
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch (err) {
+      /* private mode / storage disabled — theme just won't persist */
+    }
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    themeToggle.setAttribute(
+      "aria-label",
+      theme === "dark" ? "Switch to light theme" : "Switch to dark theme"
+    );
+  }
+
+  themeToggle.addEventListener("click", () => {
+    const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    const next = current === "dark" ? "light" : "dark";
+    applyTheme(next);
+    setStoredTheme(next);
+  });
+
+  // Sync the toggle's label with whatever theme index.html's inline
+  // script already applied (it sets the attribute; this just labels it).
+  applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light");
+
   // markdown-it is loaded globally by vendor/markdown-it.min.js. Configured
   // identically (conceptually) to the backend's markdown-it-py setup in
   // app/markdown.py, so the live preview matches the generated PDF.

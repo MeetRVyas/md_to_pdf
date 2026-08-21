@@ -3,21 +3,36 @@
   ----------
   Styling for the TOOL itself (header, dropzone, editor/preview panes,
   buttons). The rendered notes inside #preview are styled separately by
-  document.css so that the preview always matches the generated PDF.
+  document.css so that the preview always matches the generated PDF —
+  the preview's own "page" background (--page-bg below) stays white in
+  both themes for that reason, even though everything around it goes dark.
+
+  Two themes share one set of custom-property names: :root defines the
+  light theme, :root[data-theme="dark"] overrides the same names for dark.
+  Every rule below reads the variable, never a raw color, so the two
+  themes never need separate component rules.
 */
 
 :root {
   --ink: #0d2b4e;
   --ink-soft: #33526f;
   --accent: #d98324;
+  --accent-soft: #fff8ef;
   --paper: #faf8f4;
   --surface: #ffffff;
+  --surface-2: #fbfaf8;
+  --page-bg: #ffffff;
   --border: #e1e0dc;
   --border-strong: #c7cdd3;
   --muted: #6b7280;
   --danger: #b3261e;
   --danger-bg: #fdecea;
+  --success: #1a7a3a;
   --focus: #2f6fb5;
+
+  --btn-primary-bg: var(--ink);
+  --btn-primary-bg-hover: #143a68;
+  --btn-primary-fg: #ffffff;
 
   --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
@@ -25,6 +40,33 @@
     Menlo, monospace;
 
   --radius: 8px;
+}
+
+/*
+  Dark theme — 60/30/10: near-black page (60%), dark-grey surfaces (30%),
+  gold accent used deliberately sparingly (10%): the primary CTA, focus
+  rings, the dropzone's active state, and small highlights only.
+*/
+:root[data-theme="dark"] {
+  --ink: #f2f0ea;
+  --ink-soft: #d8d4c8;
+  --accent: #cba135;
+  --accent-soft: rgba(203, 161, 53, 0.14);
+  --paper: #0a0a0b;
+  --surface: #17171a;
+  --surface-2: #1d1d21;
+  --page-bg: #ffffff;
+  --border: #2c2c30;
+  --border-strong: #3a3a40;
+  --muted: #9a978f;
+  --danger: #ff6b6b;
+  --danger-bg: rgba(255, 107, 107, 0.12);
+  --success: #4caf6f;
+  --focus: #cba135;
+
+  --btn-primary-bg: var(--accent);
+  --btn-primary-bg-hover: #e3bd55;
+  --btn-primary-fg: #16130a;
 }
 
 * {
@@ -42,6 +84,7 @@ body {
   background: var(--paper);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
 :focus-visible {
@@ -64,8 +107,17 @@ body {
 
 .app-header {
   display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.app-header-text {
+  display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
 .app-title {
@@ -85,6 +137,52 @@ body {
   margin: 0;
   color: var(--muted);
   font-size: 15px;
+}
+
+.theme-toggle {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.theme-toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.theme-toggle .icon-sun,
+.theme-toggle .icon-moon {
+  display: none;
+}
+
+/* Dark mode: show a sun (click to lighten). Light mode: show a moon
+   (click to darken). */
+:root[data-theme="dark"] .theme-toggle .icon-sun {
+  display: block;
+}
+
+:root:not([data-theme="dark"]) .theme-toggle .icon-moon {
+  display: block;
 }
 
 /* ------------------------------------------------------------------ */
@@ -118,7 +216,7 @@ body {
 
 .dropzone.is-dragover {
   border-color: var(--accent);
-  background: #fff8ef;
+  background: var(--accent-soft);
 }
 
 .dropzone-primary {
@@ -162,7 +260,7 @@ body {
   text-transform: uppercase;
   color: var(--muted);
   border-bottom: 1px solid var(--border);
-  background: #fbfaf8;
+  background: var(--surface-2);
 }
 
 .editor {
@@ -175,6 +273,7 @@ body {
   line-height: 1.55;
   color: var(--ink);
   background: var(--surface);
+  caret-color: var(--accent);
 }
 
 .editor:focus {
@@ -186,11 +285,13 @@ body {
   outline-offset: -2px;
 }
 
+/* The preview pane represents the physical A4 page, so it stays on
+   --page-bg (white) in both themes rather than following --surface. */
 .preview-scroll {
   flex: 1;
   overflow: auto;
   padding: 18px 22px;
-  background: #fff;
+  background: var(--page-bg);
 }
 
 #preview.preview-empty {
@@ -239,7 +340,7 @@ body {
   border: 1.5px solid transparent;
   cursor: pointer;
   transition: transform 100ms ease, box-shadow 150ms ease, background-color 150ms ease,
-    opacity 150ms ease;
+    opacity 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 
 .btn:active {
@@ -247,12 +348,12 @@ body {
 }
 
 .btn-primary {
-  background: var(--ink);
-  color: #fff;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #143a68;
+  background: var(--btn-primary-bg-hover);
 }
 
 .btn-primary:disabled {
@@ -267,7 +368,7 @@ body {
 }
 
 .btn-secondary:hover {
-  border-color: var(--ink);
+  border-color: var(--accent);
 }
 
 .btn-tertiary {
@@ -277,7 +378,7 @@ body {
 }
 
 .btn-tertiary:hover {
-  color: var(--ink);
+  color: var(--accent);
   text-decoration: underline;
 }
 
@@ -298,7 +399,7 @@ body {
 }
 
 .status.is-success {
-  color: #1a7a3a;
+  color: var(--success);
 }
 
 .app-footer {
