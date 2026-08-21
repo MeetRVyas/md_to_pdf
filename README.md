@@ -1,168 +1,148 @@
-# Markdown → PDF
+<div align="center">
 
-Convert Markdown revision notes into polished A4 PDFs in the browser — no
-Pandoc, no local Python, no installs.
+<!-- You can replace this banner with an actual screenshot of your dark-themed UI -->
+<!-- <img src="https://capsule-render.vercel.app/api?type=waving&color=333333&height=200&section=header&text=Markdown%20%E2%8692%20PDF&fontSize=60&fontColor=FFD700&desc=Markdown%20in.%20Perfect%20A4%20PDFs%20out.&descAlignY=75&descAlign=62" width="100%" alt="Markdown to PDF Banner"> -->
 
+<a href="https://markdown-to-pdf-h0u7.onrender.com">
+    <img src="docs/assets/hero-banner.jpg" alt="Markdown to PDF Banner" />
+  </a>
+<!-- <sub><i>The hero banner and demo GIF were AI-generated using Google Gemini.</i></sub> -->
+<sub><i>The hero banner was AI-generated using Google Gemini.</i></sub>
+
+## Convert Markdown revision notes into polished A4 PDFs right in the browser.
+
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg?logo=python&logoColor=white)](https://www.python.org/) [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/) [![Playwright](https://img.shields.io/badge/Playwright-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/) [![Render](https://img.shields.io/badge/Deploy-Render-black?logo=render&logoColor=white)](https://markdown-to-pdf-h0u7.onrender.com)
+
+> **Upload / Paste Markdown &nbsp; | &nbsp; Live Preview &nbsp; | &nbsp; Download PDF**
+
+<p>
+  <a href="https://markdown-to-pdf-h0u7.onrender.com"><b>View Live Demo</b></a> •
+  <a href="#-api-reference"><b>API Docs</b></a> •
+  <a href="#-local-development"><b>Self-Host</b></a>
+</p>
+
+</div>
+
+
+
+![App Demo](docs/assets/app-demo.png)
+<!-- ![App Demo](docs/assets/app-demo.gif) -->
+*(Above: Live preview in action. What you see on the screen is exactly what gets rendered to the PDF.)*
+
+---
+
+## ✨ Features
+
+- **True WYSIWYG:** The exact same CSS styles the browser preview and the headless Chromium renderer. No layout drift.
+- **Dark/Light UI Theme:** A polished UI with a dark mode toggle (your actual PDF always stays clean and print-ready).
+- **Secure & Ephemeral:** Zero persistence. No databases. No accounts. Markdown goes in, PDF comes out, memory is wiped.
+- **Developer Ready:** Exposes a single, fast REST API endpoint for automation.
+
+---
+
+## 🏗️ Architecture
+Behind the scenes, the server renders the PDF using Headless Chromium, ensuring modern CSS and typography support.
+A single FastAPI service serves the frontend and renders the PDFs server-side using Playwright. 
+
+```mermaid
+flowchart LR
+    MD[Markdown] -->|markdown-it-py| HTML[HTML Fragment]
+    HTML -->|bleach allowlist| Sanitized[Sanitized HTML]
+    Sanitized -->|document.css| CSS{Shared Styles}
+    CSS -->|Browser| Preview(Live Preview)
+    CSS -->|Chromium/Playwright| PDF[A4 PDF Download]
 ```
-Upload / paste Markdown  →  live preview  →  Download PDF
-```
 
-A single FastAPI service serves the frontend and renders PDFs server-side
-with headless Chromium (via Playwright), so the PDF always matches what's
-on screen. See **[DEPLOY.md](./DEPLOY.md)** for deploying this to Render.
+<details>
+<summary><b>📂 Click to peek at the Project Structure</b></summary>
 
-## How it's built
-
-```
-Markdown
-   │
-   ▼
-markdown-it-py (GFM: tables, strikethrough, autolink)
-   │
-   ▼
-sanitize (bleach allowlist — strips scripts, unsafe attrs/protocols)
-   │
-   ▼
-HTML fragment ── inlined into document.css ──▶ Chromium ──▶ A4 PDF
-```
-
-The **same** `app/static/document.css` stylesheet styles both the
-in-browser live preview and the server-rendered PDF, so what you see in
-the preview pane is what you get in the download.
-
-## Project structure
-
-```
+```text
 markdown-to-pdf/
 ├── app/
-│   ├── main.py           FastAPI app: routes, validation, size limits
-│   ├── markdown.py       GFM parsing, HTML sanitization, filename logic
-│   ├── pdf.py            Playwright/Chromium PDF rendering (reused browser)
+│   ├── main.py           # FastAPI app & API routes
+│   ├── markdown.py       # GFM parsing & HTML sanitization
+│   ├── pdf.py            # Playwright PDF rendering
 │   ├── templates/
-│   │   └── index.html    Single-page frontend shell
+│   │   └── index.html    # Single-page frontend shell
 │   └── static/
-│       ├── app.js        Upload/drag-drop, live preview, download
-│       ├── styles.css    App UI chrome (header, panels, buttons)
-│       ├── document.css  Shared preview+PDF stylesheet (the "look")
-│       └── vendor/
-│           └── markdown-it.min.js   Vendored — no CDN dependency
-├── requirements.txt
-├── Dockerfile
-├── render.yaml
-├── DEPLOY.md
+│       ├── app.js        # Vanilla JS logic
+│       ├── styles.css    # App UI chrome (Dark/Light mode)
+│       ├── document.css  # Shared PDF stylesheet
+│       └── vendor/       
 └── README.md
 ```
+</details>
 
-This deviates slightly from a fully generic template in one place worth
-calling out: `static/document.css` (the notes' visual style — colors,
-heading hierarchy, table striping, page margins) is split out from
-`static/styles.css` (the tool's own UI chrome). Both are plain CSS files
-in the same `static/` directory; the split just keeps "what the PDF looks
-like" and "what the app looks like" from tangling together, while keeping
-them in exactly one place each so preview and PDF can't drift apart.
+---
 
-## Theme
+## 🚀 Usage 
 
-The app defaults to a dark theme (near-black background, dark-grey
-panels, a gold accent used sparingly — roughly a 60/30/10 split) with a
-toggle in the header to switch to light. The preference is saved in
-`localStorage` and restored on the next visit, with an inline script in
-`index.html` that applies it before first paint so there's no flash of
-the wrong theme.
+### Web Interface
+Simply visit the [Live App](https://markdown-to-pdf-h0u7.onrender.com), paste your Markdown into the editor, and click Download.
 
-The live preview pane deliberately stays on a white "page" background in
-both themes — it's standing in for the physical A4 sheet the PDF will be,
-so it shouldn't follow the app's theme. Only the chrome around it
-(editor, dropzone, buttons, header) changes. All theme colors are CSS
-custom properties in `static/styles.css` (`:root` for light,
-`:root[data-theme="dark"]` for dark) — the PDF's own stylesheet
-(`document.css`) is untouched by this and always renders the same
-regardless of which app theme is active.
+### API Reference
+You can bypass the UI and generate PDFs programmatically. 
 
-## Running locally
-
-Requires Python 3.11+.
+**`POST /api/pdf`**
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-
-pip install -r requirements.txt
-python -m playwright install --with-deps chromium
-
-uvicorn app.main:app --reload --port 8000
+curl -X POST https://markdown-to-pdf-h0u7.onrender.com/api/pdf \
+  -H "Content-Type: application/json" \
+  -d '{
+    "markdown": "# Revision Notes\n\nHere are my notes...",
+    "filename": "custom_name.md"
+  }' \
+  --output custom_name.pdf
 ```
 
-Then open <http://127.0.0.1:8000>.
+*Note: `filename` is optional. If omitted, the API will smartly name the PDF based on the first `# H1` tag in your Markdown.*
 
-`playwright install --with-deps chromium` downloads a browser binary from
-Playwright's CDN and installs its OS-level dependencies — it needs network
-access and (on Linux) usually `sudo` for the `--with-deps` half. If you
-only want the browser binary itself, drop `--with-deps` and install the
-system libraries Chromium needs yourself (Playwright will tell you exactly
-which ones are missing the first time it fails to launch).
 
-## API
+**Response:**
+Returns `application/pdf` with `Content-Disposition: attachment`.
 
-### `POST /api/pdf`
+| Error Code | Why it happened |
+| :--- | :--- |
+| `400` | Markdown payload is empty or whitespace-only. |
+| `413` | Markdown exceeds 5 MB (or request body > 8 MB). |
+| `500` / `502` | Chromium failed to render or unhandled server error. |
 
-```json
-{
-  "markdown": "# Notes\n\nBody text...",
-  "filename": "IR_Numericals_Revision_Notes.md"
-}
-```
 
-`filename` is optional — pass the originally uploaded filename if you have
-one; otherwise the PDF is named from the document's first `# H1`, or
-`document.pdf` if neither is available.
+**Limits & Safety:**
+- Max Markdown payload: `5 MB`
+- Max Request body: `8 MB`
+- Content is strictly sanitized; raw HTML passthrough is disabled.
 
-Returns `application/pdf` with `Content-Disposition: attachment`, or a
-JSON `{"detail": "..."}` error body on failure:
+---
 
-| Status | When |
-|---|---|
-| 400 | Markdown is empty/whitespace-only |
-| 413 | Markdown exceeds 5 MB, or the request body exceeds 8 MB |
-| 502 | Chromium failed to render the document |
-| 500 | Unhandled server error |
+## 💻 Local Development
 
-### `GET /health`
+Requires **Python 3.11+**.
 
-`{"status": "ok"}` — used as Render's health check.
+1. **Clone & setup virtual environment:**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   ```
 
-## Security & privacy
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-- Markdown is parsed with raw HTML passthrough **disabled**, and the
-  resulting HTML is run through an explicit `bleach` allowlist before it
-  ever reaches Chromium — no `<script>`, no `javascript:` links, no
-  event-handler attributes.
-- Nothing is written to a database or disk beyond the request's lifetime:
-  upload → convert → return the PDF → discard. There are no user accounts
-  and no persistence layer by design (see the spec's non-goals).
-- Request size is capped (5 MB of Markdown / 8 MB of request body) to
-  bound memory use per request.
-- The request-size guard reads the `Content-Length` header up front; it
-  does **not** defend against a client that omits `Content-Length` and
-  streams an unbounded chunked body. That's an acceptable trade-off for a
-  personal/small-team utility, but worth hardening (e.g. with a streaming
-  byte-counting wrapper, or a reverse-proxy body-size limit) before
-  exposing this to the general public at scale.
-- Server logs record request lifecycle events (received / started /
-  completed / failed) but never the Markdown content itself.
+3. **Install headless Chromium (Playwright):**
+   ```bash
+   python -m playwright install --with-deps chromium
+   ```
 
-## Known limitations / possible follow-ups
+4. **Run the server:**
+   ```bash
+   uvicorn app.main:app --reload --port 8000
+   ```
 
-- No CSS-counter auto-numbering of `##` sections (e.g. turning `## Boolean
-  Retrieval` into "2. Boolean Retrieval" automatically) — the spec's mock
-  numbering is treated as content the author typed, not a generated
-  feature. Straightforward to add later as a `counter-reset`/`counter-
-  increment` pair in `document.css` if wanted.
-- Live preview and the PDF use the same *parser family* (`markdown-it` in
-  JS for the browser, `markdown-it-py` — a faithful Python port — on the
-  server) rather than one literal shared implementation, since one runs in
-  the browser and the other server-side. In practice their GFM output is
-  effectively identical for the elements this app supports; the PDF is
-  always the source of truth.
-- No syntax highlighting in code blocks (spec doesn't require it — code
-  blocks are styled as clean monospace blocks).
+Open `http://127.0.0.1:8000` to see the app running locally.
+
+---
+<div align="center">
+  <i>Built with FastAPI, Playwright, and markdown-it.</i>
+</div>
