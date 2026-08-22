@@ -8,6 +8,12 @@ services:
     region: oregon
     healthCheckPath: /health
     autoDeployTrigger: commit
+
+    disk:
+      name: markdown-to-pdf-data
+      mountPath: /var/data
+      sizeGB: 1
+    
     envVars:
       # Caps how many PDF renders run at once
       - key: MAX_CONCURRENT_RENDERS

@@ -22,7 +22,7 @@ from pathlib import Path
 
 logger = logging.getLogger("markdown_to_pdf.stats")
 
-DEFAULT_STATS_FILE = "data/user_counts.json"
+DEFAULT_STATS_FILE = "/var/data/user_counts.json"
 STATS_FILE = os.environ.get("STATS_FILE", DEFAULT_STATS_FILE)
 
 
