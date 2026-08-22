@@ -2,6 +2,44 @@
   "use strict";
 
   // -----------------------------------------------------------------
+  // Splash screen: a brief themed intro on every load. Self-contained
+  // on purpose — it doesn't touch or depend on anything else below, so
+  // it's easy to change or remove independently.
+  // -----------------------------------------------------------------
+  const splash = document.getElementById("splash");
+  if (splash) {
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    // Reduced-motion users still get it, just without asking them to
+    // wait through an animation they didn't want.
+    const holdMs = prefersReducedMotion ? 120 : 950;
+
+    const dismiss = () => {
+      splash.classList.add("is-leaving");
+      if (prefersReducedMotion) {
+        // Transitions are disabled globally in this case, so
+        // transitionend will never fire — remove immediately instead
+        // of waiting on the fallback timeout below.
+        splash.remove();
+        return;
+      }
+      splash.addEventListener("transitionend", () => splash.remove(), {
+        once: true,
+      });
+      // Fallback in case transitionend never fires (e.g. tab was
+      // backgrounded mid-transition) — don't leave it stuck forever.
+      setTimeout(() => splash.remove(), 700);
+    };
+
+    setTimeout(dismiss, holdMs);
+  }
+})();
+
+(() => {
+  "use strict";
+
+  // -----------------------------------------------------------------
   // Theme toggle (persisted; default is set inline in index.html to
   // avoid a flash of the wrong theme before this script runs)
   // -----------------------------------------------------------------
