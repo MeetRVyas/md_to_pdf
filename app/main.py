@@ -18,8 +18,11 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from app.github import GITHUB_REPO, star_count
 from app.markdown import render_document
 from app.pdf import browser_manager
+from app.quotes import random_quote
+from app.stats import counter
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -134,6 +137,7 @@ async def convert_to_pdf(payload: PdfRequest) -> Response:
 
     elapsed = time.monotonic() - started_at
     logger.info("PDF generation completed in %.2fs", elapsed)
+    await counter.increment()
 
     filename = f"{document.filename_stem}.pdf"
     return Response(
@@ -141,6 +145,29 @@ async def convert_to_pdf(payload: PdfRequest) -> Response:
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+# ---------------------------------------------------------------------------
+# Header stats: conversion count + GitHub star badge
+# ---------------------------------------------------------------------------
+@app.get("/api/stats")
+async def stats() -> dict:
+    return {
+        "conversions": counter.count,
+        "github_stars": await star_count.get(),
+        "github_repo_url": f"https://github.com/{GITHUB_REPO}",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Footer quote
+# ---------------------------------------------------------------------------
+@app.get("/api/quote")
+async def quote() -> dict:
+    return random_quote() or {
+        "text": "Always look at the bigger picture. There is no comfort.",
+        "author": "Loki S2 E6"
+    }
 
 
 # ---------------------------------------------------------------------------

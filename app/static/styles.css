@@ -186,6 +186,77 @@ body {
 }
 
 /* ------------------------------------------------------------------ */
+/* Meta bar: conversion count + GitHub star button                     */
+/* ------------------------------------------------------------------ */
+
+.meta-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: -8px;
+}
+
+.stat-pill,
+.github-star-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.stat-pill {
+  color: var(--muted);
+}
+
+.stat-pill svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.github-star-btn {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+  border-color: var(--border-strong);
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.github-star-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.github-star-btn svg {
+  width: 13px;
+  height: 13px;
+  fill: var(--accent);
+}
+
+.github-star-btn .star-count {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.github-star-btn .star-count:empty {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ */
 /* Dropzone                                                             */
 /* ------------------------------------------------------------------ */
 
@@ -412,6 +483,16 @@ body {
   margin: 0;
 }
 
+.footer-quote {
+  margin-top: 8px !important;
+  font-style: italic;
+  opacity: 0.75;
+}
+
+.footer-quote:empty {
+  display: none;
+}
+
 /* ------------------------------------------------------------------ */
 /* Responsive                                                           */
 /* ------------------------------------------------------------------ */
@@ -424,6 +505,10 @@ body {
 
   .app-title {
     font-size: 23px;
+  }
+
+  .meta-bar {
+    justify-content: center;
   }
 
   .workspace {

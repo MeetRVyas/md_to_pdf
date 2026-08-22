@@ -273,6 +273,7 @@ See [the course notes](https://example.com) for the full derivation.
       URL.revokeObjectURL(url);
 
       setStatus("PDF ready.", "success");
+      loadStats(); // reflect the just-completed conversion without a reload
     } catch (err) {
       setStatus("The server is temporarily unavailable.", "error");
     } finally {
@@ -284,8 +285,52 @@ See [the course notes](https://example.com) for the full derivation.
   downloadBtn.addEventListener("click", downloadPdf);
 
   // ---------------------------------------------------------------------
+  // Header stats: conversion count + GitHub star button
+  // ---------------------------------------------------------------------
+  async function loadStats() {
+    const conversionCountEl = document.getElementById("conversionCount");
+    const githubStarBtn = document.getElementById("githubStarBtn");
+    const githubStarCountEl = document.getElementById("githubStarCount");
+
+    try {
+      const response = await fetch("/api/stats");
+      if (!response.ok) return;
+      const data = await response.json();
+
+      conversionCountEl.textContent = data.conversions.toLocaleString();
+      githubStarBtn.href = data.github_repo_url;
+
+      // github_stars is null if the count couldn't be fetched (rate
+      // limited, repo not set up yet, etc.) — just show the button
+      // without a number rather than "null".
+      if (typeof data.github_stars === "number") {
+        githubStarCountEl.textContent = data.github_stars.toLocaleString();
+      }
+    } catch (err) {
+      // Stats are a nice-to-have; fail silently and leave the placeholders.
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Footer quote
+  // ---------------------------------------------------------------------
+  async function loadQuote() {
+    const footerQuoteEl = document.getElementById("footerQuote");
+    try {
+      const response = await fetch("/api/quote");
+      if (!response.ok) return;
+      const data = await response.json();
+      footerQuoteEl.textContent = `“${data.text}” — ${data.author}`;
+    } catch (err) {
+      // Quote is decorative; fail silently.
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // Init
   // ---------------------------------------------------------------------
   updateDownloadEnabled();
   renderPreviewNow();
+  loadStats();
+  loadQuote();
 })();

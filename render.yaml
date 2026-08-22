@@ -4,12 +4,16 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    plan: free
+    plan: starter
     region: oregon
     healthCheckPath: /health
     autoDeployTrigger: commit
     envVars:
-      # Caps how many PDF renders run at once
+      # Caps how many PDF renders run at once, to protect a small instance
+      # from a burst of requests. Raise this if you upgrade the plan.
       - key: MAX_CONCURRENT_RENDERS
         value: "3"
+      # Powers the "Star" button + live count in the header.
+      - key: GITHUB_REPO
+        value: "MeetRVyas/md_to_pdf"
     # Render sets $PORT automatically at runtime — do not set it here.

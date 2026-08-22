@@ -113,6 +113,37 @@ Returns `application/pdf` with `Content-Disposition: attachment`.
 - Max Request body: `8 MB`
 - Content is strictly sanitized; raw HTML passthrough is disabled.
 
+**`GET /health`**
+
+`{"status": "ok"}` — used as Render's health check.
+
+**`GET /api/stats`**
+
+```json
+{
+  "conversions": 128,
+  "github_stars": 342,
+  "github_repo_url": "https://github.com/your-username/markdown-to-pdf"
+}
+```
+
+**`GET /api/quote`**
+
+```json
+{"text": "...", "author": "..."}
+```
+
+One random entry from `app/data/quotes.json`, for the footer.
+
+---
+
+## Security & privacy
+
+- Markdown is parsed with raw HTML passthrough **disabled**, and the resulting HTML is run through an explicit `bleach` allowlist before it ever reaches Chromium — no `<script>`, no `javascript:` links, no event-handler attributes.
+- Nothing is written to a database or disk beyond the request's lifetime: upload → convert → return the PDF → discard. There are no user accounts and no persistence layer by design.
+- Request size is capped (5 MB of Markdown / 8 MB of request body) to bound memory use per request.
+- Server logs record request lifecycle events (received / started / completed / failed) but never the Markdown content itself.
+
 ---
 
 ## 💻 Local Development
