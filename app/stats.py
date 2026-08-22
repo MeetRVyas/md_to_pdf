@@ -16,22 +16,30 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
+import os
 from pathlib import Path
 
+logger = logging.getLogger("markdown_to_pdf.stats")
 
-STAR_COUNTS_FILE = "data/user_counts.json"
+DEFAULT_STATS_FILE = "data/user_counts.json"
+STATS_FILE = os.environ.get("STATS_FILE", DEFAULT_STATS_FILE)
+
 
 class ConversionCounter:
     """Track conversion counts in memory and persist updates asynchronously."""
 
-    def __init__(self, file_path = STAR_COUNTS_FILE) -> None:
+    def __init__(self, file_path: str = STATS_FILE) -> None:
         self._count = 0
         self._lock = asyncio.Lock()
         self._write_lock = asyncio.Lock()
-        self._data_file = Path(STAR_COUNTS_FILE)
+        self._data_file = Path(file_path)
+
+        # In-flight background write tasks. Tracked so `flush()` can wait for them
+        self._pending: set[asyncio.Task] = set()
 
         count = self._read_count_sync()
-        if count:
+        if count is not None:
             self._count = count
 
     async def increment(self) -> int:
@@ -40,24 +48,29 @@ class ConversionCounter:
             count = self._count
 
         # Schedule the file write without blocking the caller.
-        asyncio.create_task(self._write_count(count))
+        task = asyncio.create_task(self._write_count(count))
+        self._pending.add(task)
+        task.add_done_callback(self._pending.discard)
 
         return count
+
+    async def flush(self) -> None:
+        """Wait for any in-flight background writes to finish."""
+        if self._pending:
+            await asyncio.gather(*self._pending, return_exceptions=True)
 
     async def _write_count(self, count: int) -> None:
         async with self._write_lock:
             self._data_file.parent.mkdir(parents=True, exist_ok=True)
-
-            # File I/O is synchronous, so move it off the event loop.
-            await asyncio.to_thread(self._write_count_sync, count)
+            try:
+                await asyncio.to_thread(self._write_count_sync, count)
+            except OSError:
+                logger.warning("Failed to persist conversion count", exc_info=True)
 
     def _read_count_sync(self) -> int | None:
         try:
-            # Read lock not required.
-            # Lock is required if any change is being done.
             with self._data_file.open("r", encoding="utf-8") as f:
                 data = json.load(f)
-
             count = data.get("count")
             return count if isinstance(count, int) else None
         except (FileNotFoundError, json.JSONDecodeError, OSError):

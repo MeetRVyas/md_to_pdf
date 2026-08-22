@@ -56,6 +56,10 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         await browser_manager.stop()
+        # Make sure the last few increments' background writes
+        # actually land on disk before the process exits, rather
+        # than being cancelled mid-flight when the event loop closes.
+        await counter.flush()
 
 
 app = FastAPI(title="Markdown to PDF", lifespan=lifespan)
