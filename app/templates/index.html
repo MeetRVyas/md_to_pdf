@@ -86,10 +86,85 @@
         <input type="file" id="fileInput" accept=".md,.markdown,text/markdown" hidden />
       </section>
 
-      <div class="workspace">
-        <div class="panel">
+      <!-- Sticky: page options + primary actions stay reachable without
+           scrolling past a long document in the panels below. -->
+      <div class="controls-bar" id="controlsBar">
+        <div class="page-options" role="group" aria-label="Page options">
+          <div class="dropdown" id="pageSizeDropdown">
+            <button type="button" class="dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="dropdown-label">Page</span>
+              <span class="dropdown-value">A4</span>
+              <svg class="dropdown-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+            </button>
+            <ul class="dropdown-menu" role="listbox" aria-label="Page size" hidden>
+              <li role="option" data-value="A3" tabindex="-1">A3</li>
+              <li role="option" data-value="A4" tabindex="-1" aria-selected="true">A4</li>
+              <li role="option" data-value="A5" tabindex="-1">A5</li>
+              <li role="option" data-value="Letter" tabindex="-1">Letter</li>
+              <li role="option" data-value="Legal" tabindex="-1">Legal</li>
+              <li role="option" data-value="Tabloid" tabindex="-1">Tabloid</li>
+            </ul>
+          </div>
+
+          <div class="dropdown" id="marginsDropdown">
+            <button type="button" class="dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="dropdown-label">Margins</span>
+              <span class="dropdown-value">Normal</span>
+              <svg class="dropdown-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+            </button>
+            <ul class="dropdown-menu" role="listbox" aria-label="Margins" hidden>
+              <li role="option" data-value="compact" tabindex="-1">Compact</li>
+              <li role="option" data-value="normal" tabindex="-1" aria-selected="true">Normal</li>
+              <li role="option" data-value="wide" tabindex="-1">Wide</li>
+            </ul>
+          </div>
+
+          <div class="dropdown" id="fontSizeDropdown">
+            <button type="button" class="dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="dropdown-label">Font</span>
+              <span class="dropdown-value">10.3 pt</span>
+              <svg class="dropdown-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+            </button>
+            <ul class="dropdown-menu" role="listbox" aria-label="Font size" hidden>
+              <li role="option" data-value="9.5" tabindex="-1">9.5 pt</li>
+              <li role="option" data-value="10" tabindex="-1">10 pt</li>
+              <li role="option" data-value="10.3" tabindex="-1" aria-selected="true">10.3 pt</li>
+              <li role="option" data-value="11" tabindex="-1">11 pt</li>
+            </ul>
+          </div>
+
+          <label class="checkbox-pill" for="pageNumbersToggle">
+            <input type="checkbox" id="pageNumbersToggle" />
+            <span>Page numbers</span>
+          </label>
+        </div>
+
+        <div class="primary-actions">
+          <button type="button" class="btn btn-primary" id="downloadBtn" disabled>
+            <span id="downloadBtnLabel">Download PDF</span>
+          </button>
+          <button type="button" class="btn btn-secondary" id="clearBtn">Clear</button>
+          <button type="button" class="btn btn-tertiary" id="sampleBtn">Load sample</button>
+        </div>
+      </div>
+
+      <div class="view-controls">
+        <span class="view-controls-label">View size</span>
+        <div class="size-presets" role="group" aria-label="Editor and preview panel size">
+          <button type="button" class="size-preset-btn" data-size="compact">Compact</button>
+          <button type="button" class="size-preset-btn is-active" data-size="comfortable">Comfortable</button>
+          <button type="button" class="size-preset-btn" data-size="large">Large</button>
+        </div>
+      </div>
+
+      <div class="workspace" id="workspace">
+        <div class="panel" id="editorPanel">
           <div class="panel-header">
             <span>Markdown</span>
+            <button type="button" class="panel-fullscreen-btn" data-panel="editorPanel" aria-label="Fill screen with the Markdown editor">
+              <svg class="icon-expand" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6M15 3h6v6M3 15v6h6M21 15v6h-6" /></svg>
+              <svg class="icon-compress" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v6H3M15 3v6h6M3 15h6v6M21 15h-6v6" /></svg>
+            </button>
           </div>
           <textarea
             id="editor"
@@ -101,9 +176,13 @@
           ></textarea>
         </div>
 
-        <div class="panel">
+        <div class="panel" id="previewPanel">
           <div class="panel-header">
             <span>Preview</span>
+            <button type="button" class="panel-fullscreen-btn" data-panel="previewPanel" aria-label="Fill screen with the preview">
+              <svg class="icon-expand" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6M15 3h6v6M3 15v6h6M21 15v6h-6" /></svg>
+              <svg class="icon-compress" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v6H3M15 3v6h6M3 15h6v6M21 15h-6v6" /></svg>
+            </button>
           </div>
           <div class="preview-scroll">
             <div id="preview" class="doc preview-empty">
@@ -111,22 +190,6 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="format-bar">
-        <span>A4</span>
-        <span class="dot" aria-hidden="true">&middot;</span>
-        <span>10.3 pt</span>
-        <span class="dot" aria-hidden="true">&middot;</span>
-        <span>Normal margins</span>
-      </div>
-
-      <div class="actions">
-        <button type="button" class="btn btn-primary" id="downloadBtn" disabled>
-          <span id="downloadBtnLabel">Download PDF</span>
-        </button>
-        <button type="button" class="btn btn-secondary" id="clearBtn">Clear</button>
-        <button type="button" class="btn btn-tertiary" id="sampleBtn">Load sample</button>
       </div>
 
       <p class="status" id="statusMessage" role="status" aria-live="polite"></p>

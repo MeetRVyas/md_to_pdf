@@ -17,6 +17,14 @@ from pathlib import Path
 
 from playwright.async_api import Browser, Playwright, async_playwright
 
+from app.page_options import (
+    DEFAULT_FONT_SIZE,
+    DEFAULT_MARGINS,
+    DEFAULT_PAGE_SIZE,
+    FOOTER_TEMPLATE,
+    page_override_css,
+)
+
 logger = logging.getLogger("markdown_to_pdf.pdf")
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -70,19 +78,35 @@ class BrowserManager:
         assert self._browser is not None
         return self._browser
 
-    async def render_pdf(self, html_fragment: str, title: str = "Document") -> bytes:
+    async def render_pdf(
+        self,
+        html_fragment: str,
+        title: str = "Document",
+        page_size: str = DEFAULT_PAGE_SIZE,
+        margins: str = DEFAULT_MARGINS,
+        font_size: float = DEFAULT_FONT_SIZE,
+        page_numbers: bool = False,
+    ) -> bytes:
         async with self._semaphore:
             browser = await self._get_browser()
             page = await browser.new_page()
             try:
-                full_html = _build_html_document(title, html_fragment)
+                full_html = _build_html_document(
+                    title, html_fragment, page_size, margins, font_size
+                )
                 # Markdown notes are self-contained: no external images/fonts
                 # to wait on, so "load" is sufficient and keeps things fast.
                 await page.set_content(full_html, wait_until="load")
-                pdf_bytes = await page.pdf(
-                    print_background=True,
-                    prefer_css_page_size=True,
-                )
+
+                pdf_kwargs = dict(print_background=True, prefer_css_page_size=True)
+                if page_numbers:
+                    pdf_kwargs.update(
+                        display_header_footer=True,
+                        header_template="<span></span>",  # suppress Chromium's default header
+                        footer_template=FOOTER_TEMPLATE,
+                    )
+
+                pdf_bytes = await page.pdf(**pdf_kwargs)
                 return pdf_bytes
             finally:
                 await page.close()
@@ -98,19 +122,30 @@ def _document_css() -> str:
     return _document_css_cache
 
 
-def _build_html_document(title: str, body_html: str) -> str:
+def _build_html_document(
+    title: str,
+    body_html: str,
+    page_size: str = DEFAULT_PAGE_SIZE,
+    margins: str = DEFAULT_MARGINS,
+    font_size: float = DEFAULT_FONT_SIZE,
+) -> str:
     """Wrap a sanitized HTML fragment with the shared document stylesheet.
 
     This is intentionally the exact same CSS file (document.css) served to
     the browser preview, inlined here rather than fetched over the network
-    so PDF generation has no external dependency.
+    so PDF generation has no external dependency. The page-options CSS is
+    appended after it, overriding document.css's fixed @page rule and base
+    font size for this specific request only — document.css itself, and
+    therefore the live preview, is untouched.
     """
     css = _document_css()
+    override_css = page_override_css(page_size, margins, font_size)
     return (
         "<!doctype html>"
         '<html lang="en"><head><meta charset="utf-8" />'
         f"<title>{escape(title)}</title>"
         f"<style>{css}</style>"
+        f"<style>{override_css}</style>"
         f'</head><body><div class="doc">{body_html}</div></body></html>'
     )
 

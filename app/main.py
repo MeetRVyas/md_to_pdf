@@ -16,10 +16,18 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.github import GITHUB_REPO, star_count
 from app.markdown import render_document
+from app.page_options import (
+    DEFAULT_FONT_SIZE,
+    DEFAULT_MARGINS,
+    DEFAULT_PAGE_SIZE,
+    FONT_SIZES_PT,
+    MARGIN_PRESETS_MM,
+    PAGE_SIZES_MM,
+)
 from app.pdf import browser_manager
 from app.quotes import random_quote
 from app.stats import counter
@@ -112,6 +120,36 @@ class PdfRequest(BaseModel):
         default=None,
         description="Original uploaded filename, if any, used to name the PDF.",
     )
+    page_size: str = Field(default=DEFAULT_PAGE_SIZE)
+    margins: str = Field(default=DEFAULT_MARGINS)
+    font_size: float = Field(default=DEFAULT_FONT_SIZE)
+    page_numbers: bool = Field(default=False)
+
+    # These three are validated against fixed allowlists rather than
+    # accepted as free-form values — they get interpolated into a
+    # server-rendered <style> block (see app/page_options.py), so
+    # anything not on the allowlist is rejected outright rather than
+    # sanitized, closing off a CSS-injection path into the PDF renderer.
+    @field_validator("page_size")
+    @classmethod
+    def _validate_page_size(cls, v: str) -> str:
+        if v not in PAGE_SIZES_MM:
+            raise ValueError(f"page_size must be one of {sorted(PAGE_SIZES_MM)}")
+        return v
+
+    @field_validator("margins")
+    @classmethod
+    def _validate_margins(cls, v: str) -> str:
+        if v not in MARGIN_PRESETS_MM:
+            raise ValueError(f"margins must be one of {sorted(MARGIN_PRESETS_MM)}")
+        return v
+
+    @field_validator("font_size")
+    @classmethod
+    def _validate_font_size(cls, v: float) -> float:
+        if v not in FONT_SIZES_PT:
+            raise ValueError(f"font_size must be one of {FONT_SIZES_PT}")
+        return v
 
 
 @app.post("/api/pdf")
@@ -132,7 +170,14 @@ async def convert_to_pdf(payload: PdfRequest) -> Response:
     try:
         document = render_document(markdown_text, payload.filename)
         title = document.filename_stem.replace("_", " ")
-        pdf_bytes = await browser_manager.render_pdf(document.html, title=title)
+        pdf_bytes = await browser_manager.render_pdf(
+            document.html,
+            title=title,
+            page_size=payload.page_size,
+            margins=payload.margins,
+            font_size=payload.font_size,
+            page_numbers=payload.page_numbers,
+        )
     except Exception:  # noqa: BLE001 - convert any renderer failure to a clean 502
         logger.exception("PDF generation failed")
         raise HTTPException(
@@ -149,6 +194,22 @@ async def convert_to_pdf(payload: PdfRequest) -> Response:
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@app.get("/api/page-options")
+async def page_options() -> dict:
+    """Lets the frontend build its dropdowns from the same allowlists the
+    backend validates against, instead of duplicating the list by hand."""
+    return {
+        "page_sizes": sorted(PAGE_SIZES_MM),
+        "margins": sorted(MARGIN_PRESETS_MM),
+        "font_sizes": list(FONT_SIZES_PT),
+        "defaults": {
+            "page_size": DEFAULT_PAGE_SIZE,
+            "margins": DEFAULT_MARGINS,
+            "font_size": DEFAULT_FONT_SIZE,
+        },
+    }
 
 
 # ---------------------------------------------------------------------------

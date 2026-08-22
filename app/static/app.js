@@ -287,6 +287,10 @@ See [the course notes](https://example.com) for the full derivation.
         body: JSON.stringify({
           markdown: markdownText,
           filename: originalFilename,
+          page_size: pageSizeDropdown.getValue(),
+          margins: marginsDropdown.getValue(),
+          font_size: Number(fontSizeDropdown.getValue()),
+          page_numbers: pageNumbersToggle.checked,
         }),
       });
 
@@ -363,6 +367,154 @@ See [the course notes](https://example.com) for the full derivation.
       // Quote is decorative; fail silently.
     }
   }
+
+  // ---------------------------------------------------------------------
+  // Custom dropdown (page size / margins / font size)
+  // ---------------------------------------------------------------------
+  // A small reusable listbox-button pattern rather than a native <select>,
+  // since a native select's popup can't be restyled to match the theme.
+  // Keyboard support: Enter/Space opens, Arrow keys move, Enter/Space
+  // selects, Escape closes. Options are hardcoded in index.html to match
+  // the allowlists in app/page_options.py — see /api/page-options for the
+  // backend's source of truth if these ever need to be regenerated.
+  function initDropdown(rootEl, onChange) {
+    const trigger = rootEl.querySelector(".dropdown-trigger");
+    const valueEl = trigger.querySelector(".dropdown-value");
+    const menu = rootEl.querySelector(".dropdown-menu");
+    const options = Array.from(menu.querySelectorAll('[role="option"]'));
+
+    options.forEach((opt) => opt.setAttribute("tabindex", "-1"));
+
+    function open() {
+      rootEl.dataset.open = "true";
+      menu.hidden = false;
+      trigger.setAttribute("aria-expanded", "true");
+      const selected = menu.querySelector('[aria-selected="true"]') || options[0];
+      if (selected) selected.focus();
+      document.addEventListener("click", onOutsideClick);
+      menu.addEventListener("keydown", onMenuKeydown);
+    }
+
+    function close() {
+      rootEl.dataset.open = "false";
+      menu.hidden = true;
+      trigger.setAttribute("aria-expanded", "false");
+      document.removeEventListener("click", onOutsideClick);
+      menu.removeEventListener("keydown", onMenuKeydown);
+    }
+
+    function select(option) {
+      options.forEach((o) => o.setAttribute("aria-selected", String(o === option)));
+      valueEl.textContent = option.textContent.trim();
+      close();
+      trigger.focus();
+      onChange(option.dataset.value);
+    }
+
+    function onOutsideClick(e) {
+      if (!rootEl.contains(e.target)) close();
+    }
+
+    function onMenuKeydown(e) {
+      const idx = options.indexOf(document.activeElement);
+      if (e.key === "Escape") {
+        close();
+        trigger.focus();
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        (options[idx + 1] || options[options.length - 1]).focus();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        (options[idx - 1] || options[0]).focus();
+      } else if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        if (document.activeElement && options.includes(document.activeElement)) {
+          select(document.activeElement);
+        }
+      } else if (e.key === "Tab") {
+        close();
+      }
+    }
+
+    trigger.addEventListener("click", () => {
+      if (menu.hidden) open();
+      else close();
+    });
+
+    options.forEach((option) => {
+      option.addEventListener("click", () => select(option));
+    });
+
+    return {
+      getValue: () =>
+        (menu.querySelector('[aria-selected="true"]') || options[0]).dataset.value,
+    };
+  }
+
+  const pageSizeDropdown = initDropdown(document.getElementById("pageSizeDropdown"), () => {});
+  const marginsDropdown = initDropdown(document.getElementById("marginsDropdown"), () => {});
+  const fontSizeDropdown = initDropdown(document.getElementById("fontSizeDropdown"), () => {});
+  const pageNumbersToggle = document.getElementById("pageNumbersToggle");
+
+  // ---------------------------------------------------------------------
+  // View size presets (Compact / Comfortable / Large)
+  // ---------------------------------------------------------------------
+  const PANEL_SIZE_KEY = "markdown-to-pdf:panel-size";
+  const workspace = document.getElementById("workspace");
+  const sizePresetButtons = Array.from(document.querySelectorAll(".size-preset-btn"));
+
+  function applyPanelSize(size) {
+    workspace.dataset.size = size;
+    sizePresetButtons.forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.size === size);
+    });
+  }
+
+  sizePresetButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const size = btn.dataset.size;
+      applyPanelSize(size);
+      try {
+        localStorage.setItem(PANEL_SIZE_KEY, size);
+      } catch (err) {
+        /* private mode / storage disabled — just won't persist */
+      }
+    });
+  });
+
+  (function initPanelSize() {
+    let stored = null;
+    try {
+      stored = localStorage.getItem(PANEL_SIZE_KEY);
+    } catch (err) {
+      /* ignore */
+    }
+    if (stored === "compact" || stored === "comfortable" || stored === "large") {
+      applyPanelSize(stored);
+    }
+  })();
+
+  // ---------------------------------------------------------------------
+  // Per-panel fullscreen (editor or preview), via the Fullscreen API
+  // ---------------------------------------------------------------------
+  document.querySelectorAll(".panel-fullscreen-btn").forEach((btn) => {
+    const panel = document.getElementById(btn.dataset.panel);
+    if (!panel || !panel.requestFullscreen) {
+      // Fullscreen API unsupported in this browser — don't show a dead button.
+      btn.hidden = true;
+      return;
+    }
+    btn.addEventListener("click", () => {
+      const isThisPanelFullscreen = document.fullscreenElement === panel;
+      if (isThisPanelFullscreen) {
+        document.exitFullscreen();
+      } else {
+        panel.requestFullscreen().catch(() => {
+          /* denied or unsupported in this context — no-op */
+        });
+      }
+    });
+  });
 
   // ---------------------------------------------------------------------
   // Init
