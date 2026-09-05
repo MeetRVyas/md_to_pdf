@@ -24,9 +24,13 @@ from app.page_options import (
     DEFAULT_FONT_SIZE,
     DEFAULT_MARGINS,
     DEFAULT_PAGE_SIZE,
-    FONT_SIZES_PT,
+    FONT_SIZE_MAX_PT,
+    FONT_SIZE_MIN_PT,
+    FONT_SIZE_STEP_PT,
     MARGIN_PRESETS_MM,
+    PAGE_SIZE_GROUPS,
     PAGE_SIZES_MM,
+    is_valid_font_size,
 )
 from app.pdf import browser_manager
 from app.quotes import random_quote
@@ -92,6 +96,25 @@ async def limit_request_size(request: Request, call_next):
     return await call_next(request)
 
 
+# Without this, a browser (or an intermediary cache) that already has an
+# old app.js/styles.css cached from before a deploy can keep serving it
+# indefinitely, while it's simultaneously served the *new* index.html —
+# which references element IDs and markup the old script doesn't know
+# about. The frontend ends up a mismatched hybrid of old JS running
+# against new HTML, which fails in confusing, partial ways (some controls
+# work, some are just blank, some throw) rather than a clean "this is
+# broken, reload" signal. `no-cache` (not `no-store`) still lets the
+# browser cache the response, but forces it to revalidate with the server
+# — via the ETag/Last-Modified that FileResponse/StaticFiles already set —
+# before using it, so a stale copy is never served after a real deploy.
+@app.middleware("http")
+async def no_cache_frontend_assets(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path == "/" or request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+    return response
+
+
 # ---------------------------------------------------------------------------
 # Static frontend
 # ---------------------------------------------------------------------------
@@ -147,8 +170,11 @@ class PdfRequest(BaseModel):
     @field_validator("font_size")
     @classmethod
     def _validate_font_size(cls, v: float) -> float:
-        if v not in FONT_SIZES_PT:
-            raise ValueError(f"font_size must be one of {FONT_SIZES_PT}")
+        if not is_valid_font_size(v):
+            raise ValueError(
+                f"font_size must be between {FONT_SIZE_MIN_PT} and "
+                f"{FONT_SIZE_MAX_PT}pt, in steps of {FONT_SIZE_STEP_PT}pt"
+            )
         return v
 
 
@@ -198,12 +224,27 @@ async def convert_to_pdf(payload: PdfRequest) -> Response:
 
 @app.get("/api/page-options")
 async def page_options() -> dict:
-    """Lets the frontend build its dropdowns from the same allowlists the
-    backend validates against, instead of duplicating the list by hand."""
+    """Lets the frontend build its controls from the same source of truth
+    the backend validates against, instead of duplicating values by hand.
+
+    page_size_groups preserves a human-sensible order (A0..A10, B0..B10,
+    ...) rather than alphabetical, since sorted(PAGE_SIZES_MM) would put
+    "A10" before "A2" and interleave the A/B/C series together.
+    """
     return {
-        "page_sizes": sorted(PAGE_SIZES_MM),
+        "page_size_groups": [
+            {"label": label, "sizes": names}
+            for label, names in PAGE_SIZE_GROUPS.items()
+        ],
+        # Flat list kept for any caller that doesn't care about grouping.
+        "page_sizes": [name for names in PAGE_SIZE_GROUPS.values() for name in names],
         "margins": sorted(MARGIN_PRESETS_MM),
-        "font_sizes": list(FONT_SIZES_PT),
+        "font_size": {
+            "min": FONT_SIZE_MIN_PT,
+            "max": FONT_SIZE_MAX_PT,
+            "step": FONT_SIZE_STEP_PT,
+            "default": DEFAULT_FONT_SIZE,
+        },
         "defaults": {
             "page_size": DEFAULT_PAGE_SIZE,
             "margins": DEFAULT_MARGINS,

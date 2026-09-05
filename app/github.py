@@ -25,7 +25,7 @@ CACHE_SECONDS = 15 * 60  # refresh at most every 15 minutes
 REQUEST_TIMEOUT = 5.0
 
 # Override with the GITHUB_REPO env var
-GITHUB_REPO = os.environ.get("GITHUB_REPO", "your-username/markdown-to-pdf")
+GITHUB_REPO = os.environ.get("GITHUB_REPO", "MeetRVyas/md_to_pdf")
 
 
 class StarCount:

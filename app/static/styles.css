@@ -302,6 +302,214 @@ body {
   font-size: 13px;
 }
 
+.dropzone-hint {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.btn-sm {
+  padding: 7px 14px;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-sm svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ------------------------------------------------------------------ */
+/* Uploaded-files manager                                               */
+/* ------------------------------------------------------------------ */
+
+.files-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.files-panel[hidden] {
+  display: none;
+}
+
+.files-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.files-panel-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.files-panel-count {
+  color: var(--muted);
+  font-weight: 500;
+  margin-left: 4px;
+}
+
+.files-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 8px 4px 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.file-row:last-child {
+  border-bottom: none;
+}
+
+.file-row.is-active {
+  background: var(--accent-soft);
+}
+
+.file-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.file-row-main:hover {
+  background: var(--accent-soft);
+}
+
+.file-row-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13.5px;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.file-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.file-row-size {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.file-row-status {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.file-row-status--idle {
+  color: var(--muted);
+  background: var(--surface-2);
+}
+
+.file-row-status--converting {
+  color: var(--focus);
+  background: rgba(47, 111, 181, 0.12);
+}
+
+.file-row-status--ready {
+  color: var(--success);
+  background: rgba(26, 122, 58, 0.12);
+}
+
+.file-row-status--error {
+  color: var(--danger);
+  background: var(--danger-bg);
+  cursor: help;
+}
+
+.file-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding-right: 4px;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.icon-btn svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-btn:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.icon-btn-danger:hover:not(:disabled) {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
 /* ------------------------------------------------------------------ */
 /* Controls bar — sticky: page options + primary actions stay reachable */
 /* without scrolling past whatever is in the editor/preview below.      */
@@ -407,11 +615,19 @@ body {
   z-index: 60;
 }
 
+/* The page-size menu has 38 entries (see /api/page-options) grouped into
+   ISO A/B/C series plus common sizes — long enough to need its own scroll
+   region rather than pushing the whole page down. */
+.dropdown-menu--scroll {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
 .dropdown-menu[hidden] {
   display: none;
 }
 
-.dropdown-menu li {
+.dropdown-menu li[role="option"] {
   padding: 7px 10px;
   border-radius: 6px;
   font-size: 13px;
@@ -420,8 +636,8 @@ body {
   white-space: nowrap;
 }
 
-.dropdown-menu li:hover,
-.dropdown-menu li:focus-visible {
+.dropdown-menu li[role="option"]:hover,
+.dropdown-menu li[role="option"]:focus-visible {
   background: var(--accent-soft);
   outline: none;
 }
@@ -429,6 +645,26 @@ body {
 .dropdown-menu li[aria-selected="true"] {
   color: var(--accent);
   font-weight: 700;
+}
+
+/* Non-interactive section headers ("ISO A", "Common", ...) within a grouped
+   dropdown menu — deliberately not [role="option"], so keyboard Arrow
+   navigation (which only walks the options list, see initDropdown in
+   app.js) skips straight past them. */
+.dropdown-group-label {
+  padding: 8px 10px 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.dropdown-group-label:not(:first-child) {
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
 }
 
 .checkbox-pill {
@@ -450,6 +686,95 @@ body {
   width: 14px;
   height: 14px;
   cursor: pointer;
+}
+
+/* ------------------------------------------------------------------ */
+/* Font-size stepper — replaces a 4-value dropdown with a full 8-24pt   */
+/* range (0.1pt resolution): +/- buttons for quick nudges, a type-in    */
+/* number field for an exact value.                                    */
+/* ------------------------------------------------------------------ */
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface);
+}
+
+.stepper-label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0 6px 0 4px;
+}
+
+.stepper-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.stepper-btn:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.stepper-btn svg {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+/* Firefox: hide the native up/down spinner (we provide our own buttons) */
+.stepper-input {
+  -moz-appearance: textfield;
+  width: 46px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  padding: 0;
+}
+
+/* Chrome/Safari/Edge: same, for the native spinner */
+.stepper-input::-webkit-outer-spin-button,
+.stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.stepper-input:focus {
+  outline: none;
+}
+
+.stepper-input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+.stepper-unit {
+  color: var(--muted);
+  font-size: 12px;
+  padding-right: 4px;
 }
 
 /* ------------------------------------------------------------------ */
@@ -651,6 +976,12 @@ body {
   font-family: var(--font-ui);
   font-size: 14px;
 }
+
+/* ------------------------------------------------------------------ */
+/* Buttons                                                              */
+/* ------------------------------------------------------------------ */
+
+.btn {
   font-family: var(--font-ui);
   font-size: 14.5px;
   font-weight: 600;
@@ -669,15 +1000,18 @@ body {
 .btn-primary {
   background: var(--btn-primary-bg);
   color: var(--btn-primary-fg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
 .btn-primary:hover:not(:disabled) {
   background: var(--btn-primary-bg-hover);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
 }
 
 .btn-primary:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .btn-secondary {
@@ -686,8 +1020,28 @@ body {
   border-color: var(--border-strong);
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-danger-ghost {
+  background: transparent;
+  color: var(--muted);
+  border-color: var(--border-strong);
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.btn-danger-ghost:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: var(--danger-bg);
 }
 
 .btn-tertiary {
@@ -885,6 +1239,24 @@ body {
   .btn {
     flex: 1 1 auto;
     text-align: center;
+  }
+
+  .files-panel-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .files-panel-header .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .file-row-meta {
+    gap: 6px;
+  }
+
+  .file-row-size {
+    display: none;
   }
 }
 

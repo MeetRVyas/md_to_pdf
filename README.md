@@ -94,6 +94,7 @@ Just **write → preview → download**.
 ## ✨ Features
 
 - **True WYSIWYG:** The exact same CSS styles the browser preview and the headless Chromium renderer. No layout drift.
+- **Batch Conversion:** Drop up to 100 Markdown files at once — convert, preview, and download each one individually, or grab all of them together as a single ZIP.
 - **Dark/Light UI Theme:** A polished UI with a dark mode toggle (your actual PDF always stays clean and print-ready).
 - **Secure & Ephemeral:** Zero persistence. No databases. No accounts. Markdown goes in, PDF comes out, memory is wiped.
 - **Developer Ready:** Exposes a single, fast REST API endpoint for automation.
@@ -184,7 +185,7 @@ Returns `application/pdf` with `Content-Disposition: attachment`.
 {
   "conversions": 128,
   "github_stars": 342,
-  "github_repo_url": "https://github.com/your-username/markdown-to-pdf"
+  "github_repo_url": "https://github.com/MeetRVyas/md_to_pdf"
 }
 ```
 

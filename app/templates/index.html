@@ -78,12 +78,30 @@
       <section
         class="dropzone"
         id="dropzone"
-        aria-label="Upload a Markdown file"
+        aria-label="Upload Markdown files"
       >
-        <p class="dropzone-primary">Drop a Markdown file here</p>
+        <p class="dropzone-primary">Drop Markdown files here</p>
         <p class="dropzone-or">or</p>
-        <button type="button" class="btn btn-secondary" id="chooseFileBtn">Choose .md file</button>
-        <input type="file" id="fileInput" accept=".md,.markdown,text/markdown" hidden />
+        <button type="button" class="btn btn-secondary" id="chooseFileBtn">Choose .md files</button>
+        <p class="dropzone-hint">Up to 100 files, 5 MB each</p>
+        <input type="file" id="fileInput" accept=".md,.markdown,text/markdown" multiple hidden />
+      </section>
+
+      <!-- Uploaded-files manager: hidden until at least one file is added.
+           Each row caches its own converted PDF (see app.js) so repeat
+           downloads and "Download all" don't reconvert unless the file's
+           content or the page options above have changed since. -->
+      <section class="files-panel" id="filesPanel" aria-label="Uploaded files" hidden>
+        <div class="files-panel-header">
+          <span class="files-panel-title">
+            Uploaded files <span class="files-panel-count" id="filesCount">0 / 100</span>
+          </span>
+          <button type="button" class="btn btn-primary btn-sm" id="downloadAllBtn" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 19h16" /></svg>
+            <span id="downloadAllBtnLabel">Download all (.zip)</span>
+          </button>
+        </div>
+        <ul class="files-list" id="filesList"></ul>
       </section>
 
       <!-- Sticky: page options + primary actions stay reachable without
@@ -96,14 +114,10 @@
               <span class="dropdown-value">A4</span>
               <svg class="dropdown-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
             </button>
-            <ul class="dropdown-menu" role="listbox" aria-label="Page size" hidden>
-              <li role="option" data-value="A3" tabindex="-1">A3</li>
-              <li role="option" data-value="A4" tabindex="-1" aria-selected="true">A4</li>
-              <li role="option" data-value="A5" tabindex="-1">A5</li>
-              <li role="option" data-value="Letter" tabindex="-1">Letter</li>
-              <li role="option" data-value="Legal" tabindex="-1">Legal</li>
-              <li role="option" data-value="Tabloid" tabindex="-1">Tabloid</li>
-            </ul>
+            <!-- Populated from GET /api/page-options by app.js — the
+                 backend's allowlist (app/page_options.py) is the single
+                 source of truth for what's selectable here. -->
+            <ul class="dropdown-menu dropdown-menu--scroll" role="listbox" aria-label="Page size" hidden></ul>
           </div>
 
           <div class="dropdown" id="marginsDropdown">
@@ -112,25 +126,25 @@
               <span class="dropdown-value">Normal</span>
               <svg class="dropdown-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
             </button>
-            <ul class="dropdown-menu" role="listbox" aria-label="Margins" hidden>
-              <li role="option" data-value="compact" tabindex="-1">Compact</li>
-              <li role="option" data-value="normal" tabindex="-1" aria-selected="true">Normal</li>
-              <li role="option" data-value="wide" tabindex="-1">Wide</li>
-            </ul>
+            <ul class="dropdown-menu" role="listbox" aria-label="Margins" hidden></ul>
           </div>
 
-          <div class="dropdown" id="fontSizeDropdown">
-            <button type="button" class="dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
-              <span class="dropdown-label">Font</span>
-              <span class="dropdown-value">10.3 pt</span>
-              <svg class="dropdown-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+          <div class="stepper" id="fontSizeStepper" role="group" aria-label="Font size in points">
+            <span class="stepper-label">Font</span>
+            <button type="button" class="stepper-btn" id="fontSizeDecBtn" aria-label="Decrease font size" tabindex="-1">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /></svg>
             </button>
-            <ul class="dropdown-menu" role="listbox" aria-label="Font size" hidden>
-              <li role="option" data-value="9.5" tabindex="-1">9.5 pt</li>
-              <li role="option" data-value="10" tabindex="-1">10 pt</li>
-              <li role="option" data-value="10.3" tabindex="-1" aria-selected="true">10.3 pt</li>
-              <li role="option" data-value="11" tabindex="-1">11 pt</li>
-            </ul>
+            <input
+              type="number"
+              class="stepper-input"
+              id="fontSizeInput"
+              inputmode="decimal"
+              aria-label="Font size in points"
+            />
+            <span class="stepper-unit">pt</span>
+            <button type="button" class="stepper-btn" id="fontSizeIncBtn" aria-label="Increase font size" tabindex="-1">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            </button>
           </div>
 
           <label class="checkbox-pill" for="pageNumbersToggle">
@@ -202,6 +216,7 @@
   </div>
 
   <script src="/static/vendor/markdown-it.min.js"></script>
+  <script src="/static/vendor/jszip.min.js"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>
