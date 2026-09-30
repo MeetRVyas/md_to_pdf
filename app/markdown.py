@@ -46,6 +46,12 @@ _ALLOWED_ATTRS = {
     "code": ["class"],  # markdown-it emits language-xxx classes on code blocks
     "th": ["align"],
     "td": ["align"],
+    "h1": ["id"],
+    "h2": ["id"],
+    "h3": ["id"],
+    "h4": ["id"],
+    "h5": ["id"],
+    "h6": ["id"],
 }
 
 _ALLOWED_PROTOCOLS = ["http", "https", "mailto"]
@@ -93,6 +99,7 @@ def render_html(markdown_text: str) -> str:
 _H1_RE = re.compile(r"^#\s+(.+?)\s*$", re.MULTILINE)
 _INLINE_MD_RE = re.compile(r"[*_`~]|\[([^\]]*)\]\([^)]*\)")
 _NON_SLUG_RE = re.compile(r"[^A-Za-z0-9]+")
+_SLUG_RE = re.compile(r"[^\w\s-]", re.UNICODE)
 
 
 def _strip_inline_markdown(text: str) -> str:
@@ -112,6 +119,39 @@ def slugify_filename(text: str, fallback: str = "document") -> str:
     """
     stem = _NON_SLUG_RE.sub("_", text).strip("_")
     return stem or fallback
+
+
+def _slugify_heading(text: str) -> str:
+    text = text.strip().lower()
+    text = re.sub(r"\s+", "-", text)
+    text = _SLUG_RE.sub("", text)
+    return text
+
+
+def _add_heading_ids(md: MarkdownIt) -> None:
+    original_heading_open = md.renderer.rules.get("heading_open")
+
+    def heading_open(tokens, idx, options, env):
+        token = tokens[idx]
+
+        # Find the heading's inline content.
+        if idx + 1 < len(tokens):
+            inline = tokens[idx + 1]
+            heading_text = inline.content
+        else:
+            heading_text = ""
+
+        slug = _slugify_heading(heading_text)
+        token.attrSet("id", slug)
+
+        if original_heading_open:
+            return original_heading_open(tokens, idx, options, env)
+
+        return md.renderer.renderToken(tokens, idx, options)
+
+    md.renderer.rules["heading_open"] = heading_open
+
+_add_heading_ids(_md)
 
 
 def derive_filename_stem(markdown_text: str, original_filename: str | None) -> str:
