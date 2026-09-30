@@ -147,7 +147,7 @@ def _add_heading_ids(md: MarkdownIt) -> None:
         if original_heading_open:
             return original_heading_open(tokens, idx, options, env)
 
-        return md.renderer.renderToken(tokens, idx, options)
+        return md.renderer.renderToken(tokens, idx, options, env)
 
     md.renderer.rules["heading_open"] = heading_open
 
